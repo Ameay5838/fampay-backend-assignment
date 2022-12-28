@@ -20,7 +20,13 @@ def load_videos_periodically():
     publishedBefore = (datetime.utcnow()).isoformat("T") + "Z"
     
     valid_keys = APIKey.objects.all().filter(exhausted=False)
-    
+    latest_published_after = VideoListing.objects.first()
+
+    if not latest_published_after:
+        date = latest_published_after[0].publishedAt
+        publishedAfter = (date).isoformat("T") + "Z"
+
+
     for key_object in valid_keys:
         key = key_object.key
         res = requests.get(
@@ -29,11 +35,11 @@ def load_videos_periodically():
                     "part": "id,snippet",
                     "type": "video",
                     "order": "date",
+                    "maxResults": 50,
                     "q": "football",
                     "key": key,
                     "publishedAfter": publishedAfter,
-                    "publishedBefore": publishedBefore
-                    
+                    "publishedBefore": publishedBefore 
                 }
             )
         items = res.json().get('items')
@@ -41,6 +47,7 @@ def load_videos_periodically():
         if res.status_code == 200:
             data = []
             items = res.json().get('items')
+                
             for i in items:
                 videoId = i['id']['videoId']
                 print(videoId)
