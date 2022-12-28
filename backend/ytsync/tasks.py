@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from os import environ
 
 from celery import shared_task
-from .models import VideoListing
+from .models import VideoListing, APIKey
 
 load_dotenv()
 
@@ -19,43 +19,48 @@ def load_videos_periodically():
     publishedAfter = (datetime.utcnow() - timedelta(seconds=6000)).isoformat("T") + "Z"
     publishedBefore = (datetime.utcnow()).isoformat("T") + "Z"
     
-    key = environ.get('API_KEY')
-    res = requests.get(
-        url='https://www.googleapis.com/youtube/v3/search',
-        params={
-                "part": "id,snippet",
-                "type": "video",
-                "order": "date",
-                "q": "football",
-                "key": key,
-                "publishedAfter": publishedAfter,
-                "publishedBefore": publishedBefore
-                
-            }
-        )
-
-    items = res.json().get('items')
-
-    print(res.__dict__)
-
-    if res.status_code == 200 and len(items) != 0:
-        data = []
-        for i in items:
-            videoId = i['id']['videoId']
-            print(videoId)
-            snippet = i['snippet']
-            data.append(
-                VideoListing(   
-                    videoId=videoId,
-                    title= snippet['title'],
-                    description= snippet['description'],
-                    publishedAt= transform_date(snippet['publishedAt']),
-                    channelTitle= snippet['channelTitle'],
-                    thumbnailUrls= snippet['thumbnails']
-                )
+    valid_keys = APIKey.objects.all().filter(exhausted=False)
+    
+    for key_object in valid_keys:
+        key = key_object.key
+        res = requests.get(
+            url='https://www.googleapis.com/youtube/v3/search',
+            params={
+                    "part": "id,snippet",
+                    "type": "video",
+                    "order": "date",
+                    "q": "football",
+                    "key": key,
+                    "publishedAfter": publishedAfter,
+                    "publishedBefore": publishedBefore
+                    
+                }
             )
+        items = res.json().get('items')
 
-        VideoListing.objects.bulk_create(data, ignore_conflicts=True)
+        if res.status_code == 200:
+            data = []
+            items = res.json().get('items')
+            for i in items:
+                videoId = i['id']['videoId']
+                print(videoId)
+                snippet = i['snippet']
+                data.append(
+                    VideoListing(   
+                        videoId=videoId,
+                        title= snippet['title'],
+                        description= snippet['description'],
+                        publishedAt= transform_date(snippet['publishedAt']),
+                        channelTitle= snippet['channelTitle'],
+                        thumbnailUrls= snippet['thumbnails']
+                    )
+                )
 
-        return 'Success'
-    return 'Failure'
+            VideoListing.objects.bulk_create(data, ignore_conflicts=True)
+
+            return True
+        else:
+            key_object.exhausted = True
+            key_object.save()
+
+    return False

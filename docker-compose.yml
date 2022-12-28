@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./backend
+    volumes:
+      - ./backend/:/app
+    ports:
+      - 1337:8000
+    environment:
+      - DEBUG=1
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ytsync
+      - DJANGO_SUPERUSER_PASSWORD=password 
+      - DJANGO_SUPERUSER_USERNAME=username
+      - DJANGO_SUPERUSER_USERNAME=username@gmail.com
+
+  
+  redis:
+    image: redis:alpine
+  
+  worker:
+    build: ./backend
+    command: celery -A fampay worker -l INFO
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=1
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ytsync
+    depends_on:
+      - redis
+
+  scheduler:
+    build: ./backend
+    command: celery -A fampay beat -l INFO
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+
+  postgres:
+    image: postgres:alpine
+    restart: always
+    volumes: 
+      - ./db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ytsync
+
+
+  
