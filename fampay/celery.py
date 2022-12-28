@@ -8,6 +8,15 @@ app = Celery('fampay')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
+app.autodiscover_tasks()
+
+app.conf.beat_schedule = {
+    "sync_task": {
+        "task": "ytsync.tasks.load_videos_periodically",
+        "schedule": 10.0,
+    },
+}
+
 @app.task(bind=True)
 def debug_task(self):
     print(f'Request: {self.request!r}')
