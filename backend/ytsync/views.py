@@ -1,3 +1,4 @@
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.http import JsonResponse
 from django.shortcuts import render
 
@@ -34,5 +35,37 @@ def get_videos(request):
                 "NOT ENOUGH DATA" : "HAHA"
             })
 
-def search_videos():
-    pass
+def search_videos(request):
+    if request.method == 'GET':
+        query = request.GET.get('q')
+        
+        if not query:
+            return JsonResponse(
+                {"message": "Empty query string provided."}
+            )
+
+        search_vector = SearchVector('title', 'description')
+        search_query = SearchQuery(query)
+
+        res = VideoListing.objects.annotate(
+                search=search_vector,
+                rank=SearchRank(search_vector, search_query)
+            ).filter(
+                search=search_query
+            ).order_by(
+                '-rank'
+            )
+
+        if len(res) == 0:
+            return JsonResponse(
+                {
+                    "message": "No videos found."
+                }
+            )
+
+        serializer = VideoListingSerializer(res, many=True)
+        data = serializer.data
+
+        return JsonResponse({
+            "data": data
+        })
