@@ -1,15 +1,11 @@
 #!/bin/sh
 
-# Collect static files
-echo "Collect static files"
-python manage.py collectstatic --noinput
-
-# create superuser if not exists
-python manage.py createsuperuser --no-input
-
-# Apply database migrations
 echo "Apply database migrations"
 python manage.py migrate
+
+# create superuser if not exists
+echo "Create super user"
+python manage.py createsuperuser --no-input --username ganesh --email ganesh@ganesh.com
 
 # Start server
 echo "Starting server"

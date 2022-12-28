@@ -1,5 +1,7 @@
 import json
 
+from django.contrib.postgres.search import SearchVector
+
 import requests
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
@@ -22,9 +24,10 @@ def load_videos_periodically():
     valid_keys = APIKey.objects.all().filter(exhausted=False)
     latest_published_after = VideoListing.objects.first()
 
-    if not latest_published_after:
-        date = latest_published_after[0].publishedAt
-        publishedAfter = (date).isoformat("T") + "Z"
+    if latest_published_after:
+        date = latest_published_after.publishedAt
+        publishedAfter = (date.utcnow()).isoformat("T") + "Z"
+
 
 
     for key_object in valid_keys:
@@ -58,16 +61,22 @@ def load_videos_periodically():
                         title= snippet['title'],
                         description= snippet['description'],
                         publishedAt= transform_date(snippet['publishedAt']),
-                        channelTitle= snippet['channelTitle'],
-                        thumbnailUrls= snippet['thumbnails']
+                        thumbnailUrls= snippet['thumbnails'],
                     )
                 )
 
             VideoListing.objects.bulk_create(data, ignore_conflicts=True)
+            VideoListing.objects.update(search_vector=SearchVector("title", "description"))
 
             return True
         else:
             key_object.exhausted = True
             key_object.save()
+            return {
+                "date": publishedAfter,
+                "Status": res.status_code,
+                "Success" : "Failed",
+                "reason": "Exhausted"
+            }
 
-    return False
+    return "Invalid Keys"
