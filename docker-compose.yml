@@ -25,7 +25,7 @@ services:
       - ./backend/:/app
     command: /bin/sh -c "/app/docker-entrypoint.sh"
     ports:
-      - 1337:8000
+      - 8000:8000
     environment:
       - DEBUG=${DEBUG}
       - POSTGRES_USER=${POSTGRES_USER}
