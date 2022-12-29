@@ -28,4 +28,4 @@ docker compose up
 
 ### Design
 
-![design.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7b963145-9db8-4ebf-9865-9770513967bc/Screenshot_2022-12-30_at_4.15.55_AM.png)
+![design.png](design.png)
