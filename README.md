@@ -33,14 +33,15 @@ docker compose up
 - GET Videos API
     - The API endpoint for fetching videos returns a paginated response.
     - Implemented pagination similiar to the youtube api , which takes a cursor such as publishedAfter and/or publishedBefore and paginates the response using page number (unlike youtube which uses a page token). The default page size in my API is 10.
+    - Indexed publishedAt in order to support cursor pagintion.
 - SEARCH API
     - In order to implement an optimised search , I took advantage of postgres full text search feature.
     - In django it is implemented using SearchVectors.
     - Used the GIN index to speed up queries even more.
+    - SearchVector is populated using a trigger since it requirest the model fields to be already present.
 - Support for multiple API keys
     - Added an APIKey model , by which api keys can be added through the dashboard.
 - Dashboard for viewing data with sorting options , I took advantage of the existing django admin dashboard for this requirement. It can be accessed at the /admin endpoint.
-
 ### Design
 
 ![design.png](design.png)
