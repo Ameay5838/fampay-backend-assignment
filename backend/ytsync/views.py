@@ -2,6 +2,7 @@ from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.http import JsonResponse
 from django.shortcuts import render
 
+from datetime import datetime
 from .models import VideoListing
 from .serializers import VideoListingSerializer
 # Create your views here.
@@ -9,7 +10,14 @@ from .serializers import VideoListingSerializer
 def get_videos(request):
 
     if request.method == 'GET':
-        videos = VideoListing.objects.all()
+        publishedBefore = request.GET.get('publishedBefore')
+
+        if not publishedBefore:
+            publishedBefore = get_current_date()
+        else:
+            publishedBefore = transform_date(publishedBefore)
+    
+        videos = VideoListing.objects.all().filter(publishedAt__lte = publishedBefore)
 
         total_videos = len(videos)
         page = int(request.GET.get('page', 1))
@@ -26,8 +34,6 @@ def get_videos(request):
             return JsonResponse({
                 "total_count": total_videos,
                 "page_number": 1,
-                "next": f"/getvideos?page={page+1}",
-                "previous": None if page == 0 else f"/getvideos?page={page-1}",
                 "data": data
             })
         else:
@@ -69,3 +75,10 @@ def search_videos(request):
         return JsonResponse({
             "data": data
         })
+
+
+def get_current_date():
+    return datetime.utcnow()
+
+def transform_date(datestring):
+    return datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%SZ').utcnow()

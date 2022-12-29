@@ -1,11 +1,6 @@
-import json
-
-from django.contrib.postgres.search import SearchVector
-
 import requests
 from dotenv import load_dotenv
 from datetime import datetime, timezone, timedelta
-from os import environ
 
 from celery import shared_task
 from .models import VideoListing, APIKey
@@ -13,70 +8,72 @@ from .models import VideoListing, APIKey
 load_dotenv()
 
 def transform_date(datestring):
-    return datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%SZ')
-
+    return datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%SZ').utcnow()
 
 @shared_task
 def load_videos_periodically():
-    publishedAfter = (datetime.utcnow() - timedelta(seconds=6000)).isoformat("T") + "Z"
-    publishedBefore = (datetime.utcnow()).isoformat("T") + "Z"
+    publishedAfter = (datetime.utcnow().replace(microsecond=0) - timedelta(seconds=60)).isoformat("T") + "Z"
+    publishedBefore = (datetime.utcnow().replace(microsecond=0)).isoformat("T") + "Z"
     
     valid_keys = APIKey.objects.all().filter(exhausted=False)
     latest_published_after = VideoListing.objects.first()
 
     if latest_published_after:
         date = latest_published_after.publishedAt
-        publishedAfter = (date.utcnow()).isoformat("T") + "Z"
+        publishedAfter = (date.utcnow().replace(microsecond=0)).isoformat("T") + "Z"
 
 
+    pageToken = ""
+    data = []
 
     for key_object in valid_keys:
         key = key_object.key
-        res = requests.get(
-            url='https://www.googleapis.com/youtube/v3/search',
-            params={
-                    "part": "id,snippet",
-                    "type": "video",
-                    "order": "date",
-                    "maxResults": 50,
-                    "q": "football",
-                    "key": key,
-                    "publishedAfter": publishedAfter,
-                    "publishedBefore": publishedBefore 
-                }
-            )
-        items = res.json().get('items')
 
-        if res.status_code == 200:
-            data = []
-            items = res.json().get('items')
-                
-            for i in items:
-                videoId = i['id']['videoId']
-                print(videoId)
-                snippet = i['snippet']
-                data.append(
-                    VideoListing(   
-                        videoId=videoId,
-                        title= snippet['title'],
-                        description= snippet['description'],
-                        publishedAt= transform_date(snippet['publishedAt']),
-                        thumbnailUrls= snippet['thumbnails'],
-                    )
+        while True:
+            res = requests.get(
+                url='https://www.googleapis.com/youtube/v3/search',
+                params={
+                        "part": "id,snippet",
+                        "type": "video",
+                        "order": "date",
+                        "maxResults": 50,
+                        "q": "football",
+                        "key": key,
+                        "publishedAfter": publishedAfter,
+                        "publishedBefore": publishedBefore,
+                        "pageToken": pageToken
+                    }
                 )
 
-            VideoListing.objects.bulk_create(data, ignore_conflicts=True)
-            VideoListing.objects.update(search_vector=SearchVector("title", "description"))
+            if res.status_code == 200:
+                res = res.json()
+                items = res.get('items')
+                pageToken = res.get('nextPageToken', "")
+                    
+                for i in items:
+                    videoId = i['id']['videoId']
+                    print(videoId)
+                    snippet = i['snippet']
+                    data.append(
+                        VideoListing(   
+                            videoId=videoId,
+                            title= snippet['title'],
+                            description= snippet['description'],
+                            publishedAt= transform_date(snippet['publishedAt']),
+                            thumbnailUrls= snippet['thumbnails'],
+                        )
+                    )
+                
+                if pageToken == "":
+                    break
 
-            return True
-        else:
-            key_object.exhausted = True
-            key_object.save()
-            return {
-                "date": publishedAfter,
-                "Status": res.status_code,
-                "Success" : "Failed",
-                "reason": "Exhausted"
-            }
+            else:
+                key_object.exhausted = True
+                key_object.save()
+                break
 
-    return "Invalid Keys"
+    if len(data) != 0:
+        VideoListing.objects.bulk_create(data, ignore_conflicts=True)
+        return True
+    else:
+        return False

@@ -20,7 +20,8 @@ class VideoListing(models.Model):
     class Meta:
         ordering = ['-publishedAt']
         indexes = (
-            GinIndex(fields=['search_vector']),
+            models.Index(fields=['publishedAt']),
+            GinIndex(fields=['search_vector'])
         )
 
 class APIKey(models.Model):

@@ -8,4 +8,4 @@ class VideoListingAdmin(admin.ModelAdmin):
 
 @admin.register(APIKey)
 class APIKeyAdmin(admin.ModelAdmin):
-    list_display = ['name', 'details', 'key', 'exhausted']
+    list_display = ['name', 'details', 'exhausted']
