@@ -9,7 +9,6 @@ from .serializers import VideoListingSerializer
 from .utils import (
     get_params_data,
     get_pagination_details,
-
 )
 # Create your views here.
 

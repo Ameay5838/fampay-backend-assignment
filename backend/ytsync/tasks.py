@@ -15,12 +15,14 @@ def load_videos_periodically():
 
     # Loads the default time window : which will start loading videos uploaded in previous minute
     publishedAfter, publishedBefore = get_default_time_window()
-    
+
+
+    # Loads valid api keys 
     valid_keys = APIKey.objects.all().filter(exhausted=False)
-    latest_published_after = VideoListing.objects.first()
 
     # Gets latest publishedAt date from db and sets that as lower bound
     # Ensuring no videos are skipped in case of task failures.
+    latest_published_after = VideoListing.objects.first()
     if latest_published_after:
         date = latest_published_after.publishedAt
         publishedAfter = get_date_string(date)
