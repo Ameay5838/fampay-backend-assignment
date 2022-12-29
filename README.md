@@ -1,5 +1,7 @@
 # Fampay Backend Assignment
 
+POSTMAN DOCS : https://documenter.getpostman.com/view/19494450/2s8Z6yXDSG
+
 ### Requirements (Implemented)
 
 ☑️ Background service to load youtube video data periodically
