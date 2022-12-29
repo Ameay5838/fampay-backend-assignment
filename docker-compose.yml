@@ -23,6 +23,7 @@ services:
     build: ./backend
     volumes:
       - ./backend/:/app
+    command: /bin/sh -c "/app/docker-entrypoint.sh"
     ports:
       - 1337:8000
     environment:
@@ -61,8 +62,10 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
 
 

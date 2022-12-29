@@ -61,17 +61,7 @@ def search_videos(request):
                 {"message": "Empty query string provided."}
             )
 
-        search_vector = SearchVector('title', 'description')
-        search_query = SearchQuery(query)
-
-        res = VideoListing.objects.annotate(
-                search=search_vector,
-                rank=SearchRank(search_vector, search_query)
-            ).filter(
-                search=search_query
-            ).order_by(
-                '-rank'
-            )
+        res = VideoListing.objects.filter(searchvector=query)
 
         if len(res) == 0:
             return JsonResponse(

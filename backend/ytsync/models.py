@@ -12,7 +12,7 @@ class VideoListing(models.Model):
     description = models.TextField(null=False)
     publishedAt = models.DateTimeField(null=False)
     thumbnailUrls = models.JSONField(null=False)
-    search_vector = SearchVectorField(null=True) 
+    searchvector = SearchVectorField(null=True) 
 
     def __str__(self) -> str:
         return self.title
@@ -21,7 +21,7 @@ class VideoListing(models.Model):
         ordering = ['-publishedAt']
         indexes = (
             models.Index(fields=['publishedAt']),
-            GinIndex(fields=['search_vector'])
+            GinIndex(fields=['searchvector'])
         )
 
 class APIKey(models.Model):

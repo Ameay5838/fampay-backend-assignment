@@ -51,8 +51,8 @@ def load_videos_periodically():
                 if pageToken == "":
                     VideoListing.objects.bulk_create(data, ignore_conflicts=True)
                     return True
-
-            break
+            else:
+                break
 
         # deactivate key if it loading fails
         key_object.exhausted = True

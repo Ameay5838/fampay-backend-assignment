@@ -4,7 +4,7 @@ from .models import VideoListing, APIKey
 
 @admin.register(VideoListing)
 class VideoListingAdmin(admin.ModelAdmin):
-    list_display = ['videoId', 'title', 'description', 'publishedAt']
+    list_display = ['videoId', 'title', 'description', 'publishedAt', 'searchvector']
 
 @admin.register(APIKey)
 class APIKeyAdmin(admin.ModelAdmin):
