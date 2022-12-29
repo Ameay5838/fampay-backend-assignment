@@ -5,25 +5,31 @@ from django.shortcuts import render
 from datetime import datetime
 from .models import VideoListing
 from .serializers import VideoListingSerializer
+
+from .utils import (
+    get_params_data,
+    get_pagination_details,
+
+)
 # Create your views here.
 
 def get_videos(request):
-
+    """
+        Implements fetching videos in reverse chronological order.
+        1. Uses publishedBefore and publishedAfter as cursor,
+           Both fields are not required only used for making more precise queries.
+        2. Fetches page based on page param provided in query.
+        3. Page size is 10.
+    """
     if request.method == 'GET':
-        publishedBefore = request.GET.get('publishedBefore')
+        page, publishedBefore, publishedAfter = get_params_data(request)
+        
+        videos = VideoListing.objects.all().filter(
+            publishedAt__lte = publishedBefore, 
+            publishedAt__gte = publishedAfter
+        )
 
-        if not publishedBefore:
-            publishedBefore = get_current_date()
-        else:
-            publishedBefore = transform_date(publishedBefore)
-    
-        videos = VideoListing.objects.all().filter(publishedAt__lte = publishedBefore)
-
-        total_videos = len(videos)
-        page = int(request.GET.get('page', 1))
-        start_page_index = (page * 5) - 5
-        end_page_index = page * 5
-        print(page, type(start_page_index), end_page_index)
+        total_videos, start_page_index, end_page_index = get_pagination_details(page, videos)
 
         if start_page_index < total_videos:
             
@@ -33,15 +39,21 @@ def get_videos(request):
 
             return JsonResponse({
                 "total_count": total_videos,
-                "page_number": 1,
+                "page_number": page,
                 "data": data
             })
         else:
             return JsonResponse({
-                "NOT ENOUGH DATA" : "HAHA"
+                "message": "No data found."
             })
 
 def search_videos(request):
+    """
+        Implements search endpoint with postgres full text search feature.
+        1. Builds search result using SearchVector on title and description,
+           And ranks them according to relevance.
+        2. Uses GIN Index internally to speed up search.
+    """
     if request.method == 'GET':
         query = request.GET.get('q')
         
@@ -75,10 +87,3 @@ def search_videos(request):
         return JsonResponse({
             "data": data
         })
-
-
-def get_current_date():
-    return datetime.utcnow()
-
-def transform_date(datestring):
-    return datetime.strptime(datestring, '%Y-%m-%dT%H:%M:%SZ').utcnow()
