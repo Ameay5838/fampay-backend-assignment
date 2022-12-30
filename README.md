@@ -40,7 +40,7 @@ docker compose up
     - In order to implement an optimised search , I took advantage of postgres full text search feature.
     - In django it is implemented using SearchVectors.
     - Used the GIN index to speed up queries even more.
-    - SearchVector is populated using a trigger since it requirest the model fields to be already present.
+    - SearchVector is populated using a trigger since it requires the model fields to be already present.
 - Support for multiple API keys
     - Added an APIKey model , by which api keys can be added through the dashboard.
 - Dashboard for viewing data with sorting options , I took advantage of the existing django admin dashboard for this requirement. It can be accessed at the /admin endpoint.
