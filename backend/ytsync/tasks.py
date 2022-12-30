@@ -1,4 +1,6 @@
-import django
+
+from django.db import connection
+
 from celery import shared_task
 
 from .models import VideoListing, APIKey
@@ -11,7 +13,7 @@ def load_videos_periodically():
     """
 
     try:
-        django.db.connection.ensure_connection()
+        connection.ensure_connection()
     except:
         return False
 
@@ -19,6 +21,10 @@ def load_videos_periodically():
     publishedAfter, publishedBefore = get_default_time_window()
 
     # Loads valid api keys 
+
+    if 'ytsync_apikey' not in connection.introspection.table_names():
+        return False
+
     if APIKey.objects.all().filter(exhausted=False).exists():
         valid_keys = APIKey.objects.all().filter(exhausted=False)
     else:
