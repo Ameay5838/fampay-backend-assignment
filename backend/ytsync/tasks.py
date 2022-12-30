@@ -15,7 +15,7 @@ def load_videos_periodically():
     try:
         connection.ensure_connection()
     except:
-        return False
+        return "Waiting for DB"
 
     # Loads the default time window : which will start loading videos uploaded in previous minute
     publishedAfter, publishedBefore = get_default_time_window()
@@ -23,11 +23,11 @@ def load_videos_periodically():
     # Loads valid api keys 
 
     if 'ytsync_apikey' not in connection.introspection.table_names():
-        return False
+        return "API Key table not ready."
 
     valid_keys = APIKey.objects.all().filter(exhausted=False)
     if len(valid_keys) == 0:
-        return False
+        return "Valid APIs not found."
 
     # Gets latest publishedAt date from db and sets that as lower bound
     # Ensuring no videos are skipped in case of task failures.
@@ -59,7 +59,7 @@ def load_videos_periodically():
                 # add videos to db when pageToken is null
                 if pageToken == "":
                     VideoListing.objects.bulk_create(data, ignore_conflicts=True)
-                    return True
+                    return "Successfully loaded video data."
             else:
                 break
 
@@ -70,6 +70,6 @@ def load_videos_periodically():
 
     if len(data) != 0:
         VideoListing.objects.bulk_create(data, ignore_conflicts=True)
-        return True
+        return "Successfully loaded video data."
     else:
-        return False
+        return "Failure to load video data."
