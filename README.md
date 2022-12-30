@@ -26,7 +26,7 @@ docker compose up
 ```
 
 1.  Access the django admin at [localhost:3000/admin](http://localhost:3000/admin) , default username is _**ganesh**_ password is _**password.**_ You can add your api key in APIKey page for testing purpose.
-2.  Make API requests to [localhost:3000/getvideos](http://localhost:3000/getvideos) and [localhost:3000/search](http://localhost:3000/search) by following the instructions here : [POSTMAN DOCS](https://documenter.getpostman.com/view/19494450/2s8Z6yXDSG)
+2.  After adding the API key make API requests to [localhost:3000/getvideos](http://localhost:3000/getvideos) and [localhost:3000/search](http://localhost:3000/search) by following the instructions here : [POSTMAN DOCS](https://documenter.getpostman.com/view/19494450/2s8Z6yXDSG)
 
 ### Implementation Details
 
