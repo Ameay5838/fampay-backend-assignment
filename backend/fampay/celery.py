@@ -13,6 +13,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     "sync_task": {
         "task": "ytsync.tasks.load_videos_periodically",
-        "schedule": 10.0,
+        "schedule": 60.0,
     },
 }

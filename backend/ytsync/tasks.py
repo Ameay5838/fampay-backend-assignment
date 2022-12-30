@@ -1,3 +1,4 @@
+import django
 from celery import shared_task
 
 from .models import VideoListing, APIKey
@@ -9,14 +10,20 @@ def load_videos_periodically():
         Load videos periodically and store in postgres.
     """
 
+    try:
+        django.db.connection.ensure_connection()
+    except:
+        print("DB not up yet.")
+        return True
+
     # Loads the default time window : which will start loading videos uploaded in previous minute
     publishedAfter, publishedBefore = get_default_time_window()
 
 
     # Loads valid api keys 
-    valid_keys = APIKey.objects.all().filter(exhausted=False)
-
-    if len(valid_keys) == 0:
+    if APIKey.objects.all().filter(exhausted=False).exists():
+        valid_keys = APIKey.objects.all().filter(exhausted=False)
+    else:
         return "No valid key available add key from django admin."
 
     # Gets latest publishedAt date from db and sets that as lower bound
