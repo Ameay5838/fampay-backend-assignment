@@ -46,4 +46,4 @@ docker compose up
 - Dashboard for viewing data with sorting options , I took advantage of the existing django admin dashboard for this requirement. It can be accessed at the /admin endpoint.
 ### Design
 
-![design.png](design.png)
+<a href="https://ibb.co/QfPGdvJ"><img src="https://i.ibb.co/L8xf5d0/design.png" alt="design" border="0"></a>
