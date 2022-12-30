@@ -1,11 +1,7 @@
-import requests
-
 from celery import shared_task
 
-from datetime import datetime, timedelta
-
 from .models import VideoListing, APIKey
-from .utils import transform_date, get_default_time_window, fetch_video_data, get_date_string, aggregate_video_data
+from .utils import get_default_time_window, fetch_video_data, get_date_string, aggregate_video_data
 
 @shared_task
 def load_videos_periodically():
@@ -19,6 +15,9 @@ def load_videos_periodically():
 
     # Loads valid api keys 
     valid_keys = APIKey.objects.all().filter(exhausted=False)
+
+    if len(valid_keys) == 0:
+        return "No valid key available add key from django admin."
 
     # Gets latest publishedAt date from db and sets that as lower bound
     # Ensuring no videos are skipped in case of task failures.

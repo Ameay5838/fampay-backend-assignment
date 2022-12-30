@@ -1,10 +1,10 @@
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.http import JsonResponse
-from django.shortcuts import render
 
-from datetime import datetime
+from rest_framework import status
+
 from .models import VideoListing
 from .serializers import VideoListingSerializer
+
 
 from .utils import (
     get_params_data,
@@ -36,15 +36,19 @@ def get_videos(request):
             serializer = VideoListingSerializer(videos, many=True)
             data = serializer.data
 
-            return JsonResponse({
-                "total_count": total_videos,
-                "page_number": page,
-                "data": data
-            })
+            return JsonResponse(
+                {
+                    "total_count": total_videos,
+                    "page_number": page,
+                    "data": data
+                },
+                status=200
+            )
         else:
-            return JsonResponse({
-                "message": "No data found."
-            })
+            return JsonResponse(
+                {"message": "No data found."},
+                status=404
+            )
 
 def search_videos(request):
     """
@@ -58,7 +62,8 @@ def search_videos(request):
         
         if not query:
             return JsonResponse(
-                {"message": "Empty query string provided."}
+                {"message": "Empty query string provided."},
+                status=406
             )
 
         res = VideoListing.objects.filter(searchvector=query)
@@ -67,12 +72,16 @@ def search_videos(request):
             return JsonResponse(
                 {
                     "message": "No videos found."
-                }
+                },
+                status=404,
             )
 
         serializer = VideoListingSerializer(res, many=True)
         data = serializer.data
 
-        return JsonResponse({
-            "data": data
-        })
+        return JsonResponse(
+            {
+                "data": data
+            },
+            status=200
+        )
