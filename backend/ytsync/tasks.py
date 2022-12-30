@@ -59,7 +59,7 @@ def load_videos_periodically():
                 # add videos to db when pageToken is null
                 if pageToken == "":
                     VideoListing.objects.bulk_create(data, ignore_conflicts=True)
-                    return "Successfully loaded video data."
+                    return f"Successfully loaded video data. Total {len(data)}"
             else:
                 break
 
@@ -70,6 +70,6 @@ def load_videos_periodically():
 
     if len(data) != 0:
         VideoListing.objects.bulk_create(data, ignore_conflicts=True)
-        return "Successfully loaded video data."
+        return f"Successfully loaded video data. Total {len(data)}"
     else:
         return "Failure to load video data."
