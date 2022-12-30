@@ -25,10 +25,9 @@ def load_videos_periodically():
     if 'ytsync_apikey' not in connection.introspection.table_names():
         return False
 
-    if APIKey.objects.all().filter(exhausted=False).exists():
-        valid_keys = APIKey.objects.all().filter(exhausted=False)
-    else:
-        return "No valid key available add key from django admin."
+    valid_keys = APIKey.objects.all().filter(exhausted=False)
+    if len(valid_keys) == 0:
+        return False
 
     # Gets latest publishedAt date from db and sets that as lower bound
     # Ensuring no videos are skipped in case of task failures.
