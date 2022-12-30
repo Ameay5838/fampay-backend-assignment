@@ -13,12 +13,10 @@ def load_videos_periodically():
     try:
         django.db.connection.ensure_connection()
     except:
-        print("DB not up yet.")
-        return True
+        return False
 
     # Loads the default time window : which will start loading videos uploaded in previous minute
     publishedAfter, publishedBefore = get_default_time_window()
-
 
     # Loads valid api keys 
     if APIKey.objects.all().filter(exhausted=False).exists():
