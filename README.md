@@ -31,7 +31,7 @@ docker compose up
 ### Implementation Details
 
 - Background Service
-    - I used celery for scheduling periodic task for fetching data from youtube API.
+    - Used celery for scheduling periodic task for fetching data from youtube API.
 - GET Videos API
     - The API endpoint for fetching videos returns a paginated response.
     - Implemented pagination similiar to the youtube api , which takes a cursor such as publishedAfter and/or publishedBefore and paginates the response using page number (unlike youtube which uses a page token). The default page size in my API is 10.
